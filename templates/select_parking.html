@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Define Parking Spots</title>
+    <style>
+        #canvas {
+            border: 1px solid black;
+        }
+    </style>
+    <script>
+        let canvas, ctx;
+        let isDrawing = false;
+        let startX, startY;
+        let rectangles = [];
+
+        function initializeCanvas(imageUrl) {
+            const img = new Image();
+            img.onload = function () {
+                canvas.width = img.width;
+                canvas.height = img.height;
+                ctx.drawImage(img, 0, 0);
+            };
+            img.src = imageUrl;
+        }
+
+        function startDrawing(e) {
+            isDrawing = true;
+            startX = Math.floor(e.offsetX);
+            startY = Math.floor(e.offsetY);
+        }
+
+        function drawRectangle(e) {
+            if (!isDrawing) return;
+            const img = new Image();
+            img.src = "{{ frame_url }}";
+            img.onload = function () {
+                ctx.drawImage(img, 0, 0);
+                for (const rect of rectangles) {
+                    ctx.strokeStyle = "red";
+                    ctx.lineWidth = 2;
+                    ctx.strokeRect(rect.x, rect.y, rect.width, rect.height);
+                }
+                const width = Math.floor(e.offsetX) - startX;
+                const height = Math.floor(e.offsetY) - startY;
+                ctx.strokeStyle = "blue";
+                ctx.strokeRect(startX, startY, width, height);
+            };
+        }
+
+        function stopDrawing(e) {
+            if (!isDrawing) return;
+            isDrawing = false;
+            const width = Math.floor(e.offsetX) - startX;
+            const height = Math.floor(e.offsetY) - startY;
+            rectangles.push({ x: startX, y: startY, width, height });
+        }
+
+        function saveParkingSpots() {
+            fetch("/select_parking", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ roi_data: rectangles })
+            })
+            .then(response => {
+                if (response.ok) {
+                    window.location.href = "/process";
+                } else {
+                    alert("Failed to save parking spots.");
+                }
+            })
+            .catch(error => console.error("Error:", error));
+        }
+
+        window.onload = function () {
+            canvas = document.getElementById("canvas");
+            ctx = canvas.getContext("2d");
+            initializeCanvas("{{ frame_url }}");
+            canvas.addEventListener("mousedown", startDrawing);
+            canvas.addEventListener("mousemove", drawRectangle);
+            canvas.addEventListener("mouseup", stopDrawing);
+        };
+    </script>
+    <style>
+        .button1 {
+            margin-left: 50%;
+            background: linear-gradient(45deg, #ff007f, #ff00ff);
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(255, 0, 255, 0.5), 0 0 20px rgba(255, 0, 127, 0.6);
+            transition: all 0.3s ease;
+        }
+    
+        .button1:hover {
+            background: linear-gradient(45deg, #ff00ff, #ff007f);
+            box-shadow: 0 6px 20px rgba(255, 0, 255, 0.7), 0 0 25px rgba(255, 0, 127, 0.8);
+            transform: scale(1.05);
+        }
+    
+        .button1:active {
+            transform: scale(0.95);
+            box-shadow: 0 4px 10px rgba(255, 0, 255, 0.5), 0 0 15px rgba(255, 0, 127, 0.6);
+        }
+    </style>
+</head>
+<body>
+    <h1>Define Parking Spots</h1>
+    <canvas id="canvas"></canvas>
+    <button class="button1" onclick="saveParkingSpots()">Save Parking Spots</button>
+</body>
+</html>

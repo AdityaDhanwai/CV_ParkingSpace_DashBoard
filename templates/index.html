@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parking Space Detection System</title>
+    <style>
+        /* Global Styles */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #008080, #70a1ff);
+            color: #fff;
+            overflow-x: hidden;
+        }
+
+        /* Navigation Bar */
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #004d4d;
+            padding: 15px 30px;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .navbar h1 {
+            margin: 0;
+            font-size: 1.8em;
+        }
+
+        .navbar a {
+            color: #fff;
+            text-decoration: none;
+            margin-left: 20px;
+            font-size: 1.2em;
+        }
+
+        .navbar a:hover {
+            text-decoration: underline;
+        }
+
+        .navbar .right {
+            display: flex;
+            align-items: center;
+        }
+
+        .navbar .login-btn {
+            background-color: #ff4757;
+            color: #fff;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            font-size: 1.1em;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .navbar .login-btn:hover {
+            background-color: #e84118;
+        }
+
+        /* Alert Styles */
+        .alert {
+            padding: 15px;
+            background-color: #4caf50;
+            color: white;
+            margin: 10px 0;
+            border-radius: 5px;
+            display: none; /* Hidden by default */
+        }
+
+        .alert.error {
+            background-color: #f44336;
+        }
+
+        /* Main Content */
+        .main-content {
+            text-align: center;
+            padding: 50px 20px;
+        }
+
+        .main-content h1 {
+            font-size: 3em;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
+        }
+
+        .main-content img {
+            width: 100%;
+            max-width: 600px;
+            margin: 20px auto;
+            border-radius: 15px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            display: block;
+        }
+
+        .form-container {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 30px;
+            margin: 30px auto;
+            width: 90%;
+            max-width: 500px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .form-container label {
+            display: block;
+            font-size: 1.2em;
+            margin-bottom: 10px;
+        }
+
+        .form-container input[type="file"] {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 5px;
+            font-size: 1em;
+        }
+
+        .form-container button {
+            background-color: #ff4757;
+            color: #fff;
+            font-size: 1.2em;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .form-container button:hover {
+            background-color: #e84118;
+        }
+
+        /* Footer */
+        footer {
+            background-color: #004d4d;
+            color: #fff;
+            padding: 20px;
+            text-align: center;
+            position: relative;
+            bottom: 0;
+            width: 100%;
+        }
+
+        footer p {
+            margin: 5px 0;
+            font-size: 0.9em;
+        }
+
+        footer a {
+            color: #70a1ff;
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <h1>Parking Space Detection</h1>
+        <div class="right">
+            <a href="#about">About</a>
+            <a href="#contact">Contact</a>
+            <a href="/login" class="login-btn">Login</a>
+        </div>
+    </div>
+
+    <!-- Alert Message -->
+    <div id="alert" class="alert"></div>
+
+    <div class="main-content">
+        <h1>Welcome to Parking Space Detection</h1>
+        <p>Upload your video to detect available parking spaces using Computer Vision technology.</p>
+        <img src="{{ url_for('static', filename='images/car.jpg') }}" alt="Parking Detection Image">
+        <div class="form-container">
+            <form action="/upload" method="post" enctype="multipart/form-data">
+                <label for="file">Upload Video:</label>
+                <input type="file" name="file" id="file" accept="video/*" required>
+                <button type="submit">Upload</button>
+            </form>
+        </div>
+    </div>
+    <footer>
+        <p>Developed by <b>Aditya Dhanwai</b> and <b>Shubhan Ansari</b></p>
+        <p>Contact: <a href="mailto:aditya.dhanwai@mitaoe.ac.in">aditya.dhanwai@mitaoe.ac.in</a></p>
+        <p>&copy; 2024 Parking Detection System | Powered by OpenCV and Flask</p>
+    </footer>
+
+    <script>
+        // Display flash messages as alerts
+        document.addEventListener("DOMContentLoaded", () => {
+            const alertBox = document.getElementById("alert");
+            const message = "{{ get_flashed_messages()[0] if get_flashed_messages() else '' }}";
+            const category = "{{ 'success' if 'Login successful!' in get_flashed_messages() else 'error' }}";
+            if (message) {
+                alertBox.textContent = message;
+                alertBox.className = `alert ${category}`;
+                alertBox.style.display = "block";
+
+                // Hide the alert after 5 seconds
+                setTimeout(() => {
+                    alertBox.style.display = "none";
+                }, 5000);
+            }
+        });
+    </script>
+</body>
+</html>

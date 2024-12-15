@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Upload Video</title>
+    <script>
+        function uploadVideo() {
+            const formData = new FormData();
+            formData.append("file", document.getElementById("videoFile").files[0]);
+
+            fetch("/", {
+                method: "POST",
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.redirect_url) {
+                    window.location.href = data.redirect_url;
+                }
+            })
+            .catch(error => console.error("Error:", error));
+        }
+    </script>
+</head>
+<body>
+    <h1>Upload Video</h1>
+    <input type="file" id="videoFile" accept="video/*">
+    <button onclick="uploadVideo()">Upload</button>
+</body>
+</html>
